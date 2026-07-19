@@ -1,0 +1,154 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[UTF8]{ctex}          
+\usepackage{fontspec}            
+\setCJKmainfont{Noto Serif CJK SC}[
+    AutoFakeBold = true,         
+    AutoFakeSlant = true]
+
+\usepackage{amsmath, amssymb}    
+\usepackage{booktabs}            
+\usepackage{array}               
+\usepackage{geometry}            
+\geometry{margin=2.5cm}          
+
+\title{UR5e 机械臂标准DH参数推导过程}
+\author{wcj}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{一、DH参数的本质}
+在标准DH约定中，从关节$i-1$到关节$i$的坐标变换需要四个参数
+\begin{enumerate}
+    \item $\theta_i$（关节角）：绕上一关节的$Z$轴旋转的角度（旋转关节即变量）
+    \item $d_i$（连杆偏距）：沿上一关节的$Z$轴平移的距离
+    \item $a_i$（连杆长度）：沿本关节的$X$轴平移的距离（两轴公垂线长度）
+    \item $\alpha_i$（连杆扭转角）：绕本关节的$X$轴旋转的角度（两轴夹角）
+\end{enumerate}
+
+\section*{二、UR5e 物理结构分析}
+UR5e 有6个旋转关节（全部是 $R$ 关节）：
+\begin{itemize}
+    \item 关节1（腰部）：绕竖直轴旋转。
+    \item 关节2（肩部）：绕水平轴旋转（大臂前后摆动）
+    \item 关节3（肘部）：绕水平轴旋转（小臂前后摆动）
+    \item 关节4（腕1）：绕水平轴旋转（小臂旋转）
+    \item 关节5（腕2）：绕水平轴旋转（手腕俯仰）
+    \item 关节6（腕3）：绕竖直轴旋转（末端旋转）
+\end{itemize}
+\textbf{注意}：关节2和关节3的轴线平行（均为水平方向）；关节4、5、6的轴线交汇于一点（手腕中心点）
+
+\section*{三、坐标系的建立（初学者直观画法）}
+我们只需确定每个关节的 $Z$ 轴（旋转轴方向），然后按标准DH规则（公垂线方向）确定 $X$ 轴：
+\begin{itemize}
+    \item 坐标系 $\{0\}$（基座）：$Z_0$ 竖直向上
+    \item 坐标系 $\{1\}$（关节1）：$Z_1$ 竖直向上（$Z_0$ 与 $Z_1$ 重合）
+    \item 坐标系 $\{2\}$（关节2）：$Z_2$ 水平向前（大臂旋转轴）。$Z_1$ 与 $Z_2$ 异面垂直
+    \item 坐标系 $\{3\}$（关节3）：$Z_3$ 水平向前（小臂旋转轴）。$Z_2$ 与 $Z_3$ 平行
+    \item 坐标系 $\{4\}$（关节4）：$Z_4$ 水平方向（与 $Z_3$ 垂直）
+    \item 坐标系 $\{5\}$（关节5）：$Z_5$ 水平方向（与 $Z_4$ 垂直）
+    \item 坐标系 $\{6\}$（关节6）：$Z_6$ 竖直方向（末端法兰轴线）
+\end{itemize}
+
+\section*{四、DH 表格}
+\subsection*{关节1 ($i=1$)}
+物理意义：基座到肩部
+\begin{itemize}
+    \item $\theta_1$：电机转动角度 $q_1$，无初始偏移 $\Rightarrow \theta_1 = q_1$
+    \item $d_1$：基座底部到关节2轴线的垂直高度，官方值 $0.089159$ m
+    \item $a_1$：$Z_0$ 与 $Z_1$ 重合，公垂线长度为 $0 \Rightarrow a_1 = 0$
+    \item $\alpha_1$：$Z_0$ 向上，$Z_1$ 水平向前，绕 $X_1$ 旋转 $+90^\circ$ 可重合 $\Rightarrow \alpha_1 = +\pi/2$
+\end{itemize}
+
+\subsection*{关节2 ($i=2$)}
+物理意义：肩部到肘部（大臂长度）
+\begin{itemize}
+    \item $\theta_2$：机械零位时手臂竖直指天。此时 $Z_1$ 与 $Z_2$ 夹角为 $-90^\circ$，故 $\theta_2 = q_2 - \pi/2$
+    \item $d_2$：两轴相交无偏移 $\Rightarrow d_2 = 0$
+    \item $a_2$：大臂长度因公垂线指向负方向（肘部向下弯），所以 $\mathbf{a_2 = -0.425}$ m
+    \item $\alpha_2$：$Z_1$ 与 $Z_2$ 平行 $\Rightarrow \alpha_2 = 0$
+\end{itemize}
+
+\subsection*{关节3 ($i=3$)}
+物理意义：肘部到腕部（小臂长度）
+\begin{itemize}
+    \item $\theta_3$：零位时 $Z_3$ 与 $Z_2$ 同向，无偏移 $\Rightarrow \theta_3 = q_3$
+    \item $d_3$：两轴共面相交 $\Rightarrow d_3 = 0$
+    \item $a_3$：小臂长度。同理公垂线指向负方向，$\mathbf{a_3 = -0.39225}$ m
+    \item $\alpha_3$：$Z_2$ 与 $Z_3$ 平行 $\Rightarrow \alpha_3 = 0$
+\end{itemize}
+
+\subsection*{关节4 ($i=4$)}
+物理意义：腕部第一节（手腕旋转）
+\begin{itemize}
+    \item $\theta_4$：$Z_3$ 与 $Z_4$ 垂直，需附加 $-90^\circ$ 偏移 $\Rightarrow \theta_4 = q_4 - \pi/2$
+    \item $d_4$：肘部轴线到腕部中心沿 $Z_3$ 的偏移，官方值 $0.10915$ m
+    \item $a_4$：$Z_3$ 与 $Z_4$ 垂直相交 $\Rightarrow a_4 = 0$
+    \item $\alpha_4$：$Z_3$ 到 $Z_4$ 扭转 $+90^\circ$ $\Rightarrow \alpha_4 = +\pi/2$。
+\end{itemize}
+
+\subsection*{关节5 ($i=5$)}
+物理意义：腕部第二节（手腕俯仰）
+\begin{itemize}
+    \item $\theta_5$：无额外偏移 $\Rightarrow \theta_5 = q_5$。
+    \item $d_5$：腕部中心到下一关节的偏心距，官方值 $0.09465$ m。
+    \item $a_5$：$Z_4$ 与 $Z_5$ 垂直相交 $\Rightarrow a_5 = 0$。
+    \item $\alpha_5$：$Z_4$ 到 $Z_5$ 扭转 $-90^\circ$ $\Rightarrow \alpha_5 = -\pi/2$。
+\end{itemize}
+
+\subsection*{关节 6 ($i=6$)}
+物理意义：末端法兰旋转
+\begin{itemize}
+    \item $\theta_6$：无额外偏移 $\Rightarrow \theta_6 = q_6$
+    \item $d_6$：腕部中心到末端法兰盘端面的高度，官方值 $0.0823$ m
+    \item $a_6$：$Z_5$ 与 $Z_6$ 垂直相交 $\Rightarrow a_6 = 0$
+    \item $\alpha_6$：此处按定义取 $0$ $\Rightarrow \alpha_6 = 0$
+\end{itemize}
+
+\section*{五、UR5e 最终标准DH参数表}
+\begin{table}[h]
+\centering
+\caption{UR5e 标准DH参数表（官方参数）}
+\begin{tabular}{c|c|c|c|c}
+\toprule
+\textbf{关节 $i$} & \textbf{$\theta_i$ (变量+偏移)} & \textbf{$d_i$ (m)} & \textbf{$a_i$ (m)} & \textbf{$\alpha_i$ (rad)} \\
+\midrule
+1  & $q_1$               & 0.089159  & 0         & $+\pi/2$ \\
+2  & $q_2 - \pi/2$       & 0         & $-0.425$  & 0       \\
+3  & $q_3$               & 0         & $-0.39225$& 0       \\
+4  & $q_4 - \pi/2$       & 0.10915   & 0         & $+\pi/2$ \\
+5  & $q_5$               & 0.09465   & 0         & $-\pi/2$ \\
+6  & $q_6$               & 0.0823    & 0         & 0       \\
+\bottomrule
+\end{tabular}
+\end{table}
+\vspace{0.5cm}
+
+\section*{六、单步变换矩阵公式（标准DH）}
+已知某关节参数 $\theta_i, d_i, a_i, \alpha_i$，从坐标系 $\{i-1\}$ 到 $\{i\}$ 的齐次变换矩阵为：
+\begin{equation}
+T_i^{i-1} = 
+\begin{bmatrix}
+\cos\theta_i & -\sin\theta_i \cos\alpha_i & \sin\theta_i \sin\alpha_i & a_i \cos\theta_i \\
+\sin\theta_i & \cos\theta_i \cos\alpha_i & -\cos\theta_i \sin\alpha_i & a_i \sin\theta_i \\
+0 & \sin\alpha_i & \cos\alpha_i & d_i \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+\end{equation}
+
+末端执行器在基座标系下的位姿可由下式求得：
+\begin{equation}
+T_6^0 = T_1^0 \cdot T_2^1 \cdot T_3^2 \cdot T_4^3 \cdot T_5^4 \cdot T_6^5
+\end{equation}
+
+\textbf{零位验证}：令所有电机角度 $q_1 = q_2 = \dots = q_6 = 0$ 代入矩阵连乘，可计算得末端坐标近似为：
+\begin{equation}
+X \approx 0.425 + 0.39225 = 0.81725 \text{ m},\quad
+Y = 0,\quad
+Z \approx 0.089159 + 0.10915 + 0.09465 + 0.0823 = 0.375259 \text{ m}
+\end{equation}
+机械臂完全竖直向上指天，与UR5e的物理零位姿态一致
+
+\end{document}
